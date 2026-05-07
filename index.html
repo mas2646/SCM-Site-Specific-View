@@ -6,9 +6,9 @@
     <title>Site-Specific Analysis - Surco Canal</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: #121212; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow: hidden; }
+        body { background: #121212; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow: auto; }
         
-        .sites-container { width: 100vw; height: 100vh; padding: 20px; display: flex; flex-direction: column; }
+        .sites-container { width: 100vw; min-height: 100vh; padding: 20px; display: flex; flex-direction: column; }
         
         .tabs { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; }
         .tab-btn { padding: 10px 20px; background: #333; border: none; color: white; cursor: pointer; border-radius: 5px; font-weight: bold; transition: 0.3s; font-size: 0.8rem; }
@@ -20,10 +20,11 @@
         .small-map { width: 100%; height: 70vh; position: relative; border: 1px solid #444; background: #000; overflow: hidden; }
         .layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-size: contain; background-repeat: no-repeat; background-position: center; transition: opacity 0.3s; }
         
-        .controls { padding: 20px; text-align: center; background: rgba(0,0,0,0.5); }
+        .controls { padding: 20px; text-align: center; background: rgba(0,0,0,0.5); display: flex; flex-direction: column; align-items: center; gap: 12px; }
         input[type=range] { width: 80%; cursor: pointer; accent-color: #007bff; }
-        .year-label { font-size: 1.2rem; margin-bottom: 10px; color: #007bff; font-weight: bold; }
-        .trace-control { margin-top: 10px; font-size: 0.9rem; color: #aaa; }
+        .year-label { font-size: 1.2rem; color: #007bff; font-weight: bold; }
+        .trace-checkbox { display: inline-flex; align-items: center; gap: 10px; font-size: 0.95rem; color: #aaa; }
+        .trace-checkbox input { width: 16px; height: 16px; }
     </style>
 </head>
 <body>
@@ -43,9 +44,6 @@
             <div class="layer m-2025" style="background-image: url('metro-zoomin/2025Metro.jpg'); opacity: 0;"></div>
             <div class="layer metro-trace" style="background-image: url('metro-zoomin/Metro_Trace.png'); opacity: 0; z-index: 10;"></div>
         </div>
-        <div class="trace-control">
-            <input type="checkbox" id="check-metro" onchange="toggleTrace('metro-trace', this.checked)"> Show 2025 Canal Trace
-        </div>
     </div>
 
     <div id="curve" class="site-display">
@@ -55,9 +53,6 @@
             <div class="layer c-2001" style="background-image: url('curve-zoomin/2001Curve.jpg'); opacity: 0;"></div>
             <div class="layer c-2025" style="background-image: url('curve-zoomin/2025Curve.jpg'); opacity: 0;"></div>
             <div class="layer curve-trace" style="background-image: url('curve-zoomin/Curve_Trace.png'); opacity: 0; z-index: 10;"></div>
-        </div>
-        <div class="trace-control">
-            <input type="checkbox" id="check-curve" onchange="toggleTrace('curve-trace', this.checked)"> Show 2025 Canal Trace
         </div>
     </div>
 
@@ -69,26 +64,17 @@
             <div class="layer mo-2025" style="background-image: url('mouth-zoomin/2025Mouth.jpg'); opacity: 0;"></div>
             <div class="layer mouth-trace" style="background-image: url('mouth-zoomin/Mouth_Trace.png'); opacity: 0; z-index: 10;"></div>
         </div>
-        <div class="trace-control">
-            <input type="checkbox" id="check-mouth" onchange="toggleTrace('mouth-trace', this.checked)"> Show 2025 Canal Trace
-        </div>
     </div>
 
     <div class="controls">
         <div id="site-label" class="year-label">Year: 1944</div>
         <input type="range" id="global-slider" min="0" max="3" value="0" oninput="updateYear(this.value)">
+        <label class="trace-checkbox"><input type="checkbox" id="show-trace" onchange="toggleCurrentTrace(this.checked)"> Show 2025 Canal Trace</label>
     </div>
 </div>
 
 <script>
     const years = ["1944", "1971", "2001", "2025"];
-
-    function openSite(siteId, event) {
-        document.querySelectorAll('.site-display').forEach(s => s.classList.remove('active'));
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById(siteId).classList.add('active');
-        event.currentTarget.classList.add('active');
-    }
 
     function updateYear(val) {
         const year = years[val];
@@ -107,8 +93,20 @@
         }
     }
 
-    function toggleTrace(className, show) {
-        document.querySelectorAll('.' + className).forEach(el => el.style.opacity = show ? 1 : 0);
+    function toggleCurrentTrace(show) {
+        const activeSite = document.querySelector('.site-display.active').id;
+        const traceClass = activeSite === 'metropolitano' ? 'metro-trace' : activeSite === 'curve' ? 'curve-trace' : 'mouth-trace';
+        document.querySelectorAll('.' + traceClass).forEach(el => el.style.opacity = show ? 1 : 0);
+    }
+
+    function openSite(siteId, event) {
+        document.querySelectorAll('.site-display').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(siteId).classList.add('active');
+        event.currentTarget.classList.add('active');
+
+        const showTrace = document.getElementById('show-trace').checked;
+        toggleCurrentTrace(showTrace);
     }
 </script>
 
